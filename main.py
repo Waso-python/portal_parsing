@@ -134,10 +134,10 @@ def driver_get():
     except Exception as ex:
         print(ex)
     finally:
-        pass
-        # print(driver.page_source)
-        # driver.close()
-        # driver.quit()
+        with open("order.json", "w", encoding='utf8') as outfile:
+            json.dump(orders_dict, outfile, ensure_ascii=False)
+        driver.close()
+        driver.quit()
 
 
 if __name__ == '__main__':
