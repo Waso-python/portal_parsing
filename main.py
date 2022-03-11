@@ -79,8 +79,10 @@ def parse_page_data(page_source):
         order_rec['order_period'] = order_period
         order_comment = info_fields[3]
         order_rec['order_comment'] = order_comment
-        print(order_rec)
-        # orders_dict[num_order] = order_rec
+        orders_dict[num_order] = {'link_order': link_order, 'order_status': order_status,
+                                  'order_type': order_type, 'order_subj': order_subj, 'order_firm': order_firm,
+                                  'order_price': order_price[:-1], 'deal_count': deal_count, 'order_region': order_region,
+                                  'order_law': order_law, 'order_period': order_period, 'order_comment': order_comment}
 
 
 def parse_page(driver):
