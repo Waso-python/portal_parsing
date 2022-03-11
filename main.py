@@ -2,6 +2,7 @@ from selenium.webdriver.common.by import By
 from selenium import webdriver
 import time
 from bs4 import BeautifulSoup
+import json
 from fake_useragent import UserAgent
 
 user_agents_list = [
@@ -62,7 +63,7 @@ def parse_page_data(page_source):
         order_rec['order_firm'] = order_firm
         print(order_firm)
         try:
-            order_price = item.find('div', {'class': 'jzBqrB'}).text.strip()
+            order_price = item.find('div', {'class': 'jzBqrB'}).text.strip().replace("&nbsp", "")
         except:
             order_price = 'None'
         order_rec['order_price'] = order_price
@@ -79,9 +80,11 @@ def parse_page_data(page_source):
         order_rec['order_period'] = order_period
         order_comment = info_fields[3]
         order_rec['order_comment'] = order_comment
+        print(order_rec)
         orders_dict[num_order] = {'link_order': link_order, 'order_status': order_status,
                                   'order_type': order_type, 'order_subj': order_subj, 'order_firm': order_firm,
-                                  'order_price': order_price[:-1], 'deal_count': deal_count, 'order_region': order_region,
+                                  'order_price': order_price[:-1].strip(), 'deal_count': deal_count,
+                                  'order_region': order_region,
                                   'order_law': order_law, 'order_period': order_period, 'order_comment': order_comment}
 
 
@@ -101,7 +104,7 @@ def parse_page(driver):
 
 def get_next_page(driver):
     while parse_page(driver) > 0:
-        res_page = driver.find_element(By.XPATH, '/html/body/div[3]/div/div[5]/div[2]/div/div/div[1]/div[5]/div[3]/div/div[1]/div/a[9]').click()
+        res_page = driver.find_element(By.XPATH, '//a[@type="nextItem"]').click()
         time.sleep(4)
     return 1
 
@@ -110,19 +113,19 @@ def driver_get():
     try:
         driver.get(url)
         time.sleep(3)
-        driver.find_element(By.XPATH, '/html/body/div[3]/div/div[5]/div[2]/div/div/div[1]/div[2]/div/div[1]/div[3]/span').click()
+        driver.find_element(By.XPATH, '//span[text()="Закупки по потребностям"]').click()
         print('get zakupki')
         time.sleep(4)
-        driver.find_element(By.XPATH, '/html/body/div[3]/div/div[5]/div[2]/div/div/div[1]/div[3]/div/div/div[2]/div/i').click()
+        driver.find_element(By.XPATH, '//span[text()="Показать фильтры"]').click()
         print('open filter')
         time.sleep(4)
-        driver.find_element(By.XPATH, '/html/body/div[3]/div/div[5]/div[2]/div/div/div[1]/div[4]/div/div/form/div/div[1]/div[1]/div/div/i[2]').click()
+        driver.find_element(By.CLASS_NAME, 'delete').click()
         print('delete filter value')
         time.sleep(4)
-        driver.find_element(By.XPATH, '/html/body/div[3]/div/div[5]/div[2]/div/div/div[1]/div[4]/div/div/form/div/div[6]/div/button[2]').click()
+        driver.find_element(By.XPATH, '//span[text()="Применить"]').click()
         print('commit ')
         time.sleep(4)
-        driver.find_element(By.CSS_SELECTOR, '.PublicListHeaderActionsStyles__ShowFilterButton-sc-yl44rw-6 > i:nth-child(2)').click()
+        driver.find_element(By.XPATH, '//span[text()="Скрыть фильтры"]').click()
         print('hide filter window')
         time.sleep(4)
         # with open('main.html', "w") as myfile:
