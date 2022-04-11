@@ -3,7 +3,27 @@ from selenium import webdriver
 import time
 from bs4 import BeautifulSoup
 import json
-from fake_useragent import UserAgent
+from utils import get_inn, only_digit
+import logging
+from my_set import URL
+
+PR_ERROR = 0
+PAGE_NUM = 0
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+logging.basicConfig(filename="log.log", level=logging.INFO, format=FORMAT)
+
+
+def loger(type, mess):
+    global PR_ERROR
+    if type == 'ERROR':
+        PR_ERROR +=1
+        logging.error(mess)
+    else:
+        logging.info(mess)
 
 user_agents_list = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36',
@@ -13,18 +33,17 @@ user_agents_list = [
 
 
 user_agent = user_agents_list[1]
-print(user_agent)
+loger('INFO',user_agent)
 
 options = webdriver.FirefoxOptions()
 options.set_preference("general.useragent.override", user_agent)
 
 driver = webdriver.Firefox(options=options)
 
-url = 'https://zakupki.mos.ru/purchase/list?page=1&perPage=50&sortField=relevance&sortDesc=true&filter=%7B%22auctionSpecificFilter%22%3A%7B%22stateIdIn%22%3A%5B19000002%2C19000005%2C19000003%2C19000004%2C19000008%5D%7D%2C%22needSpecificFilter%22%3A%7B%7D%2C%22tenderSpecificFilter%22%3A%7B%7D%7D&state=%7B%22currentTab%22%3A1%7D'
-# url = 'https://www.whatismybrowser.com/detect/what-is-my-user-agent/'
+url = URL
+
 
 orders_dict = dict()
-
 
 def get_add_info(div_source, ind):
     info_fields = []
@@ -39,15 +58,17 @@ def get_add_info(div_source, ind):
 
 
 def parse_page_data(page_source):
+    loger('INFO',"parsing")
     order_rec = dict()
     soup = BeautifulSoup(page_source, 'lxml')
     order_list = soup.find('div', {'class': 'PublicListStyles__PublicListContentContainer-sc-1q0smku-1'})
     items = order_list.find_all('div', {'class': 'CardStyles__MainInfoContainer-sc-18miw4v-1'})
+    
     for index, item in enumerate(items):
         order_rec.clear()
         num_order = item.find('span', {'class': 'EllipsedSpan__WordBreakSpan-sc-1fhhmku-0'}).text.strip()
         print(num_order)
-        link_order = item.find('a').get('href')
+        link_order =r'https://zakupki.mos.ru' + item.find('a').get('href')
         order_rec['link_order'] = link_order
         print(link_order)
         order_status = item.find('div', {'class': 'content'}).text.strip()
@@ -60,42 +81,59 @@ def parse_page_data(page_source):
         order_rec['order_subj'] = order_subj
         print(order_subj)
         order_firm = item.find('a', {'class': 'dzCDib'}).text.strip()
+        firm_inn = get_inn(order_firm)[0][5:16] if get_inn(order_firm) else '0000000000'
         order_rec['order_firm'] = order_firm
         print(order_firm)
         try:
-            order_price = item.find('div', {'class': 'jzBqrB'}).text.strip().replace("&nbsp", "")
+            order_price = item.find('div', {'class': 'jzBqrB'}).text.strip()
         except:
             order_price = 'None'
+        order_price = only_digit(order_price)
         order_rec['order_price'] = order_price
         print(order_price)
         deal_count = item.find('div', {'class': 'eyTIpk'}).text.strip()
         order_rec['deal_count'] = deal_count
         print(deal_count)
         info_fields = get_add_info(order_list, index)
-        order_region = info_fields[0]
-        order_rec['order_region'] = order_region
-        order_law = info_fields[1]
-        order_rec['order_law'] = order_law
-        order_period = info_fields[2]
-        order_rec['order_period'] = order_period
-        order_comment = info_fields[3]
-        order_rec['order_comment'] = order_comment
-        print(order_rec)
+        c = len(info_fields)
+        if c < 4:
+            order_region = info_fields[0]
+            order_rec['order_region'] = order_region
+            order_law = 'No'
+            order_rec['order_law'] = order_law
+            order_period = info_fields[c - 2]
+            order_rec['order_period'] = order_period
+            order_comment = info_fields[c - 1]
+            order_rec['order_comment'] = order_comment
+        else:
+            order_region = info_fields[0]
+            order_rec['order_region'] = order_region
+            order_law = info_fields[1]
+            order_rec['order_law'] = order_law
+            order_period = info_fields[2]
+            order_rec['order_period'] = order_period
+            order_comment = info_fields[3]
+            order_rec['order_comment'] = order_comment
+        # print(order_rec)
+        order_start = order_period[2:12]
+        order_end = order_period[16:32]
         orders_dict[num_order] = {'link_order': link_order, 'order_status': order_status,
                                   'order_type': order_type, 'order_subj': order_subj, 'order_firm': order_firm,
-                                  'order_price': order_price[:-1].strip(), 'deal_count': deal_count,
+                                  'firm_inn': firm_inn,
+                                  'order_price': order_price, 'deal_count': deal_count,
                                   'order_region': order_region,
-                                  'order_law': order_law, 'order_period': order_period, 'order_comment': order_comment}
+                                  'order_law': order_law, 'order_start': order_start, 'order_end': order_end, 
+                                  'order_comment': order_comment}
 
 
 def parse_page(driver):
-    page = driver.find_element(By.CSS_SELECTOR, '.PublicListStyles__PublicListContentContainer-sc-1q0smku-1 > div:nth-child(49) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(2)')
+    page = driver.find_element(By.XPATH, '/html/body/div[3]/div/div[5]/div[2]/div/div/div[1]/div[5]/div[2]/div[1]/div[1]/div/div/div[1]/div/div[1]/div/div/div[2]/div')
     if page.text == 'ПРИЕМ ПРЕДЛОЖЕНИЙ':
         try:
             parse_page_data(driver.page_source)
-            print(orders_dict)
-        except:
-            print('error')
+            # print(orders_dict)
+        except Exception as ex:
+            loger('ERROR',ex)
         finally:
             return 1
     else:
@@ -103,7 +141,10 @@ def parse_page(driver):
 
 
 def get_next_page(driver):
+    global PAGE_NUM
     while parse_page(driver) > 0:
+        PAGE_NUM += 1
+        loger('INFO', f'read a {PAGE_NUM} page')
         res_page = driver.find_element(By.XPATH, '//a[@type="nextItem"]').click()
         time.sleep(4)
     return 1
@@ -112,13 +153,13 @@ def get_next_page(driver):
 def driver_get():
     try:
         driver.get(url)
-        time.sleep(3)
+        time.sleep(6)
         driver.find_element(By.XPATH, '//span[text()="Закупки по потребностям"]').click()
         print('get zakupki')
-        time.sleep(4)
+        time.sleep(6)
         driver.find_element(By.XPATH, '//span[text()="Показать фильтры"]').click()
         print('open filter')
-        time.sleep(4)
+        time.sleep(5)
         driver.find_element(By.CLASS_NAME, 'delete').click()
         print('delete filter value')
         time.sleep(4)
@@ -135,7 +176,7 @@ def driver_get():
         time.sleep(5)
 
     except Exception as ex:
-        print(ex)
+        loger('ERROR', ex)
     finally:
         with open("order.json", "w", encoding='utf8') as outfile:
             json.dump(orders_dict, outfile, ensure_ascii=False)
@@ -146,6 +187,18 @@ def driver_get():
 if __name__ == '__main__':
     # with open('main.html', "r") as myfile:
     #     parse_page_data(myfile.read())
-    driver_get()
+    loger('INFO',"START PROGRAM")
+    try:
+        driver_get()
+    except Exception as ex:
+        loger('ERROR', ex)
+        if PR_ERROR > 0:
+            loger('ERROR', f'program has {PR_ERROR} errors')
+    finally:
+        loger('INDO', f'readed {PAGE_NUM} pages')
+        if PR_ERROR > 0:
+            loger('ERROR', f'program has {PR_ERROR} errors')
+        loger('INFO', 'exit')
+
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
