@@ -77,10 +77,10 @@ def parse_page_data(page_source):
         order_type = item.find('div', {'class': 'iOqMyw'}).text.strip()
         order_rec['order_type'] = order_type
         print(order_type)
-        order_subj = item.find('a', {'class': 'drFPNq'}).text.strip()
+        order_subj = item.find('a', {'class': 'drFPNq'}).text.strip().replace("'","").replace("\"","")
         order_rec['order_subj'] = order_subj
         print(order_subj)
-        order_firm = item.find('a', {'class': 'dzCDib'}).text.strip()
+        order_firm = item.find('a', {'class': 'dzCDib'}).text.strip().replace("'","").replace("\"","")
         firm_inn = get_inn(order_firm)[0][5:16] if get_inn(order_firm) else '0000000000'
         order_rec['order_firm'] = order_firm
         print(order_firm)
