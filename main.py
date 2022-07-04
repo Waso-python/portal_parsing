@@ -6,10 +6,11 @@ import json
 from utils import get_inn, only_digit
 import logging
 from my_set import URL
+import sys
 
 PR_ERROR = 0
 PAGE_NUM = 0
-
+COUNT_PAGE = 1000
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -127,7 +128,9 @@ def parse_page_data(page_source):
 
 
 def parse_page(driver):
+    global COUNT_PAGE
     page = driver.find_element(By.XPATH, '/html/body/div[3]/div/div[5]/div[2]/div/div/div[1]/div[5]/div[2]/div[1]/div[1]/div/div/div[1]/div/div[1]/div/div/div[2]/div')
+
     if page.text == 'ПРИЕМ ПРЕДЛОЖЕНИЙ':
         try:
             parse_page_data(driver.page_source)
@@ -142,7 +145,13 @@ def parse_page(driver):
 
 def get_next_page(driver):
     global PAGE_NUM
-    while parse_page(driver) > 0:
+    # while parse_page(driver) > 0:
+    while PAGE_NUM < COUNT_PAGE:
+        try:
+            parse_page_data(driver.page_source)
+            # print(orders_dict)
+        except Exception as ex:
+            loger('ERROR',ex)
         PAGE_NUM += 1
         loger('INFO', f'read a {PAGE_NUM} page')
         res_page = driver.find_element(By.XPATH, '//a[@type="nextItem"]').click()
