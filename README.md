@@ -15,6 +15,7 @@ PASSWORD_DB = ''
 HOST_DB = ''
 PORT_DB = ''
 
+added
 main.py - start parsing and save result in order.json
 json_to_db.py - from order.json to table raw_data in database
 
