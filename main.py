@@ -6,11 +6,16 @@ import json
 from utils import get_inn, only_digit
 import logging
 from my_set import URL
+from bot_mess import add_to_table
 import sys
+
+def error_bot(rec):
+    rec = [rec, 1, 1]
+    add_to_table(rec)
 
 PR_ERROR = 0
 PAGE_NUM = 0
-COUNT_PAGE = 1000
+COUNT_PAGE = 10
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -136,6 +141,7 @@ def parse_page(driver):
             parse_page_data(driver.page_source)
             # print(orders_dict)
         except Exception as ex:
+            error_bot(ex)
             loger('ERROR',ex)
         finally:
             return 1
@@ -151,6 +157,7 @@ def get_next_page(driver):
             parse_page_data(driver.page_source)
             # print(orders_dict)
         except Exception as ex:
+            error_bot(ex)
             loger('ERROR',ex)
         PAGE_NUM += 1
         loger('INFO', f'read a {PAGE_NUM} page')
@@ -185,6 +192,7 @@ def driver_get():
         time.sleep(5)
 
     except Exception as ex:
+        error_bot(ex)
         loger('ERROR', ex)
     finally:
         with open("order.json", "w", encoding='utf8') as outfile:
@@ -200,14 +208,14 @@ if __name__ == '__main__':
     try:
         driver_get()
     except Exception as ex:
+        error_bot(ex)
         loger('ERROR', ex)
         if PR_ERROR > 0:
             loger('ERROR', f'program has {PR_ERROR} errors')
+            error_bot(f'program has {PR_ERROR} errors')
     finally:
-        loger('INDO', f'readed {PAGE_NUM} pages')
-        if PR_ERROR > 0:
-            loger('ERROR', f'program has {PR_ERROR} errors')
-        loger('INFO', 'exit')
+        loger('INFO', f'readed {PAGE_NUM} pages')
+       
 
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

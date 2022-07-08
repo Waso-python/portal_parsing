@@ -4,7 +4,12 @@ import json
 from psycopg2 import OperationalError
 from my_set import PASSWORD_DB, HOST_DB, PORT_DB, DB_NAME, USER_DB
 from datetime import datetime
+from bot_mess import add_to_table
 
+
+def error_bot(rec):
+    rec = [rec, 1, 1]
+    add_to_table(rec)
 
 def create_connection():
     connection = None
@@ -18,6 +23,7 @@ def create_connection():
         )
         print("Connection to PostgreSQL DB successful")
     except OperationalError as e:
+        error_bot(e)
         print(f"The error '{e}' occurred")
     return connection
 
@@ -29,6 +35,7 @@ def execute_query(connection, query):
         cursor.execute(query)
         print("Query executed successfully")
     except OperationalError as e:
+        error_bot(e)
         print(f"The error '{e}' occurred")
 
 
@@ -46,6 +53,7 @@ def add_to_table(items):
 	try:
 		execute_query(con,sql_q)
 	except Exception as e:
+		error_bot(e)
 		print(e)
 
 lst = []
