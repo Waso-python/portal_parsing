@@ -212,9 +212,10 @@ if __name__ == '__main__':
         loger('ERROR', ex)
         if PR_ERROR > 0:
             loger('ERROR', f'program has {PR_ERROR} errors')
-            error_bot(f'program has {PR_ERROR} errors')
+            error_bot(f'PARSING CRASH with {PR_ERROR} errors')
     finally:
         loger('INFO', f'readed {PAGE_NUM} pages')
+        error_bot(f'PARSING ENDED with {PR_ERROR} errors')
        
 
 
