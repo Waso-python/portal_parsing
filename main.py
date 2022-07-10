@@ -9,13 +9,13 @@ from my_set import URL
 from bot_mess import add_to_table
 import sys
 
-def error_bot(rec):
-    rec = [rec, 1, 1]
+def error_bot(rec, priority):
+    rec = [rec, 1, priority]
     add_to_table(rec)
 
 PR_ERROR = 0
 PAGE_NUM = 0
-COUNT_PAGE = 10
+COUNT_PAGE = 250
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -97,7 +97,10 @@ def parse_page_data(page_source):
         order_price = only_digit(order_price)
         order_rec['order_price'] = order_price
         print(order_price)
-        deal_count = item.find('div', {'class': 'eyTIpk'}).text.strip()
+        try:
+            deal_count = item.find('div', {'class': 'eyTIpk'}).text.strip()
+        except:
+            deal_count = None
         order_rec['deal_count'] = deal_count
         print(deal_count)
         info_fields = get_add_info(order_list, index)
@@ -120,7 +123,7 @@ def parse_page_data(page_source):
             order_rec['order_period'] = order_period
             order_comment = info_fields[3]
             order_rec['order_comment'] = order_comment
-        # print(order_rec)
+        print(order_rec)
         order_start = order_period[2:12]
         order_end = order_period[16:32]
         orders_dict[num_order] = {'link_order': link_order, 'order_status': order_status,
@@ -141,7 +144,7 @@ def parse_page(driver):
             parse_page_data(driver.page_source)
             # print(orders_dict)
         except Exception as ex:
-            error_bot(ex)
+            error_bot(ex, 2)
             loger('ERROR',ex)
         finally:
             return 1
@@ -157,7 +160,7 @@ def get_next_page(driver):
             parse_page_data(driver.page_source)
             # print(orders_dict)
         except Exception as ex:
-            error_bot(ex)
+            error_bot(ex, 2)
             loger('ERROR',ex)
         PAGE_NUM += 1
         loger('INFO', f'read a {PAGE_NUM} page')
@@ -192,7 +195,7 @@ def driver_get():
         time.sleep(5)
 
     except Exception as ex:
-        error_bot(ex)
+        error_bot(ex, 2)
         loger('ERROR', ex)
     finally:
         with open("order.json", "w", encoding='utf8') as outfile:
@@ -210,12 +213,13 @@ if __name__ == '__main__':
     except Exception as ex:
         error_bot(ex)
         loger('ERROR', ex)
-        if PR_ERROR > 0:
-            loger('ERROR', f'program has {PR_ERROR} errors')
-            error_bot(f'PARSING CRASH with {PR_ERROR} errors')
+        
+            
     finally:
         loger('INFO', f'readed {PAGE_NUM} pages')
-        error_bot(f'PARSING ENDED with {PR_ERROR} errors')
+        if PAGE_NUM < COUNT_PAGE:
+            error_bot(f'PARSING CRASH with {PR_ERROR} errors', 2)
+        error_bot(f'PARSING ENDED with {PR_ERROR} errors', 1)
        
 
 
