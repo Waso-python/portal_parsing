@@ -218,7 +218,7 @@ if __name__ == '__main__':
     finally:
         loger('INFO', f'readed {PAGE_NUM} pages')
         if PAGE_NUM < COUNT_PAGE:
-            error_bot(f'PARSING CRASH with {PR_ERROR} errors', 2)
+            error_bot(f'PARSING CRASH with {PR_ERROR} errors READED {PAGE_NUM} PAGES OF {COUNT_PAGE}', 2)
         error_bot(f'PARSING ENDED with {PR_ERROR} errors', 1)
        
 
