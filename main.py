@@ -15,7 +15,7 @@ def error_bot(rec, priority):
 
 PR_ERROR = 0
 PAGE_NUM = 0
-COUNT_PAGE = 20
+COUNT_PAGE = 200
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
