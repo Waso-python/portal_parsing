@@ -15,7 +15,7 @@ def error_bot(rec, priority):
 
 PR_ERROR = 0
 PAGE_NUM = 0
-COUNT_PAGE = 250
+COUNT_PAGE = 20
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -53,10 +53,10 @@ orders_dict = dict()
 
 def get_add_info(div_source, ind):
     info_fields = []
-    items = div_source.find_all('div', {'class': 'CardStyles__AdditionalInfoContainer-sc-18miw4v-9'})
+    items = div_source.find_all('div', {'class': 'CardStyles__AdditionalInfoContainer-sc-18miw4v-10'})
     for index, item in enumerate(items):
         if index == ind:
-            add_items = item.find_all('div', {'class': 'CardStyles__AdditionalInfoHeader-sc-18miw4v-10'})
+            add_items = item.find_all('div', {'class': 'CardStyles__AdditionalInfoHeader-sc-18miw4v-11'})
             for index, item in enumerate(add_items):
                 print(item.find('span').text)
                 info_fields.append(item.find('span').text.strip())
@@ -83,7 +83,7 @@ def parse_page_data(page_source):
         order_type = item.find('div', {'class': 'iOqMyw'}).text.strip()
         order_rec['order_type'] = order_type
         print(order_type)
-        order_subj = item.find('a', {'class': 'drFPNq'}).text.strip().replace("'","").replace("\"","")
+        order_subj = item.find('a', {'class': 'cFWyXp'}).text.strip().replace("'","").replace("\"","")
         order_rec['order_subj'] = order_subj
         print(order_subj)
         order_firm = item.find('a', {'class': 'dzCDib'}).text.strip().replace("'","").replace("\"","")
