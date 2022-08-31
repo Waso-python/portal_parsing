@@ -15,7 +15,7 @@ def error_bot(rec, priority):
 
 PR_ERROR = 0
 PAGE_NUM = 0
-COUNT_PAGE = 200
+COUNT_PAGE = 2
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -91,7 +91,7 @@ def parse_page_data(page_source):
         order_rec['order_firm'] = order_firm
         print(order_firm)
         try:
-            order_price = item.find('div', {'class': 'jzBqrB'}).text.strip()
+            order_price = item.find('div', {'class': 'ipuOrA'}).text.strip()
         except:
             order_price = 'None'
         order_price = only_digit(order_price)
