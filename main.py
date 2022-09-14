@@ -15,7 +15,7 @@ def error_bot(rec, priority):
 
 PR_ERROR = 0
 PAGE_NUM = 0
-COUNT_PAGE = 2
+COUNT_PAGE = 41
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -100,7 +100,7 @@ def parse_page_data(page_source):
         try:
             deal_count = item.find('div', {'class': 'eyTIpk'}).text.strip()
         except:
-            deal_count = None
+            deal_count = '0'
         order_rec['deal_count'] = deal_count
         print(deal_count)
         info_fields = get_add_info(order_list, index)
@@ -134,22 +134,6 @@ def parse_page_data(page_source):
                                   'order_law': order_law, 'order_start': order_start, 'order_end': order_end, 
                                   'order_comment': order_comment}
 
-
-def parse_page(driver):
-    global COUNT_PAGE
-    page = driver.find_element(By.XPATH, '/html/body/div[3]/div/div[5]/div[2]/div/div/div[1]/div[5]/div[2]/div[1]/div[1]/div/div/div[1]/div/div[1]/div/div/div[2]/div')
-
-    if page.text == 'ПРИЕМ ПРЕДЛОЖЕНИЙ':
-        try:
-            parse_page_data(driver.page_source)
-            # print(orders_dict)
-        except Exception as ex:
-            error_bot(ex, 2)
-            loger('ERROR',ex)
-        finally:
-            return 1
-    else:
-        return 0
 
 
 def get_next_page(driver):
